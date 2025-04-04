@@ -1,5 +1,5 @@
 import streamlit as st
-from openai import OpenAI  # import openai가 아닌, OpenAI 클래스만 가져옴
+from openai import OpenAI
 
 # 맞춤형 CSS로 스타일 추가 (배너, 푸터 스타일)
 st.markdown(
@@ -38,8 +38,8 @@ openai_api_key = st.sidebar.text_input("OpenAI API Key", type="password")
 if not openai_api_key:
     st.sidebar.info("API 키를 입력하면 앱을 사용할 수 있습니다. 🗝️")
 else:
-    # 여기서 openai.api_key가 아닌, OpenAI.api_key로 설정
-    openai.api_key = openai_api_key
+    # 구버전 OpenAI 클라이언트 인스턴스 생성
+    client = OpenAI(api_key=openai_api_key)
 
     # 세션 상태에 대화 기록 초기화
     if "messages" not in st.session_state:
@@ -63,29 +63,38 @@ else:
 
     # 사용자 입력 처리 (대화 입력 필드)
     if prompt := st.chat_input("질문이나 요청을 입력하세요:"):
+        # 사용자 메시지 저장 및 표시
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
 
-        # 응답 생성 전에 스피너 표시
+        # 대화 내역을 하나의 프롬프트 문자열로 합치기
+        prompt_text = ""
+        for m in st.session_state.messages:
+            if m["role"] == "system":
+                prompt_text += "System: " + m["content"] + "\n"
+            elif m["role"] == "user":
+                prompt_text += "User: " + m["content"] + "\n"
+            elif m["role"] == "assistant":
+                prompt_text += "Assistant: " + m["content"] + "\n"
+        prompt_text += "Assistant: "
+
+        # completions 엔드포인트를 사용하여 응답 생성
         with st.spinner("답변 생성 중..."):
-            # openai.ChatCompletion.create -> OpenAI.ChatCompletion.create
-            response_stream = openai.Completions.create(
-                model="gpt-3.5-turbo",
-                messages=st.session_state.messages,
-                stream=True,
+            response = client.completions.create(
+                model="text-davinci-003",
+                prompt=prompt_text,
+                max_tokens=200,
+                temperature=0.7,
+                n=1,
+                stop=None,
             )
 
-            full_response = ""
-            with st.chat_message("assistant"):
-                for chunk in response_stream:
-                    if "choices" in chunk:
-                        delta = chunk["choices"][0]["delta"]
-                        chunk_text = delta.get("content", "")
-                        full_response += chunk_text
-                        st.markdown(chunk_text)
-
+        # 응답에서 생성된 텍스트 추출
+        full_response = response["choices"][0]["text"].strip()
         st.session_state.messages.append({"role": "assistant", "content": full_response})
+        with st.chat_message("assistant"):
+            st.markdown(full_response)
 
     # 푸터 추가
     st.markdown('<div class="footer">Developed with ❤️ by Konuri</div>', unsafe_allow_html=True)
