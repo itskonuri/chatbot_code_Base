@@ -1,24 +1,24 @@
 import streamlit as st
 from openai import OpenAI
 
-# 🧁 귀여운 CSS 스타일 적용
+# 🎨 파스텔 하늘색 CSS 스타일 적용
 st.markdown("""
     <style>
     /* 전체 배경 */
     body {
-        background-color: #FFF5F7;
+        background-color: #DFF6FD;
     }
 
     /* 앱 전체 배경과 폰트 */
     .stApp {
-        background-color: #FFF0F5;
+        background-color: #E0F7FA;
         font-family: 'Comic Sans MS', cursive, sans-serif;
         color: #4B4B4B;
     }
 
     /* 제목 색상과 정렬 */
     h1 {
-        color: #FF69B4;
+        color: #00BFFF;
         text-align: center;
     }
 
@@ -28,7 +28,7 @@ st.markdown("""
         border-radius: 20px;
         padding: 10px;
         margin-bottom: 10px;
-        box-shadow: 0px 4px 6px rgba(255, 182, 193, 0.3);
+        box-shadow: 0px 4px 6px rgba(135, 206, 235, 0.3);
     }
 
     /* 입력창 스타일 */
@@ -38,21 +38,21 @@ st.markdown("""
 
     /* 채팅 인풋 박스 배경 */
     .stChatInputContainer {
-        background-color: #FFF0F5;
+        background-color: #E0F7FA;
         padding: 8px;
         border-radius: 10px;
     }
 
     /* 버튼 꾸미기 */
     button {
-        background-color: #FFB6C1 !important;
+        background-color: #87CEEB !important;
         color: white !important;
         border-radius: 10px !important;
     }
 
     /* 링크 색상 */
     a {
-        color: #FF69B4;
+        color: #00BFFF;
     }
     </style>
 """, unsafe_allow_html=True)
