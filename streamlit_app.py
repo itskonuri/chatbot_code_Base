@@ -68,7 +68,7 @@ else:
 
         # 응답 생성 전에 스피너 표시
         with st.spinner("답변 생성 중..."):
-            response_stream = openai.ChatCompletion.create(
+            response_stream = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=st.session_state.messages,
                 stream=True,
