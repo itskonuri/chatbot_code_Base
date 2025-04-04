@@ -1,100 +1,53 @@
 import streamlit as st
 from openai import OpenAI
 
-# 맞춤형 CSS로 스타일 추가 (배너, 푸터 스타일)
-st.markdown(
-    """
-    <style>
-    .banner {
-        background: linear-gradient(90deg, #4facfe, #00f2fe);
-        padding: 1rem;
-        border-radius: 8px;
-        text-align: center;
-        color: white;
-        font-size: 2rem;
-        font-weight: bold;
-        margin-bottom: 1rem;
-    }
-    .footer {
-        text-align: center;
-        font-size: 0.8rem;
-        color: #555;
-        margin-top: 2rem;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
+# 앱 제목과 설명
+st.title("🐍 파이썬 챗봇 선생님")
+st.write(
+    "안녕! 나는 파이썬을 쉽게 설명해주는 챗봇 선생님이야! 👩‍🏫\n"
+    "파이썬이 궁금한 게 있으면 뭐든지 물어봐!\n\n"
+    "먼저, OpenAI API 키를 입력해야 해. [API 키 받는 곳](https://platform.openai.com/account/api-keys)"
 )
 
-# 상단 배너 추가
-st.markdown('<div class="banner">💬 Code Editor & Helper</div>', unsafe_allow_html=True)
-st.write("이 앱은 Konuri의 코드 에디터로, 코드 수정 및 작성 관련 도움을 드립니다. 즐겁게 사용하세요! 😄")
-
-# 사이드바에 API 키 입력 및 간단 안내
-st.sidebar.title("🔧 설정")
-st.sidebar.write("OpenAI API 키를 입력해주세요. 이후, 대화형 코드 헬퍼와 대화하며 코드를 개선해 보세요!")
-openai_api_key = st.sidebar.text_input("OpenAI API Key", type="password")
+# OpenAI API 키 입력
+openai_api_key = st.text_input("🔑 OpenAI API 키를 입력해 주세요", type="password")
 
 if not openai_api_key:
-    st.sidebar.info("API 키를 입력하면 앱을 사용할 수 있습니다. 🗝️")
+    st.info("API 키를 넣어야 챗봇이 작동해요! 🗝️", icon="💡")
 else:
-    # 구버전 OpenAI 클라이언트 인스턴스 생성
+    # OpenAI 클라이언트 생성
     client = OpenAI(api_key=openai_api_key)
 
-    # 세션 상태에 대화 기록 초기화
+    # 이전 대화 저장
     if "messages" not in st.session_state:
-        st.session_state.messages = []
+        # 챗봇의 첫 인사
+        st.session_state.messages = [
+            {"role": "assistant", "content": "안녕! 나는 파이썬을 쉽게 알려주는 챗봇 선생님이야. 파이썬이 궁금한 게 있으면 무엇이든 물어봐 😊"}
+        ]
 
-    # 시스템 메시지 추가 (코드 헬퍼 역할 부여) - 최초 1회만 삽입
-    if not any(msg["role"] == "system" for msg in st.session_state.messages):
-        st.session_state.messages.insert(0, {
-            "role": "system",
-            "content": (
-                "너는 코드 수정 및 작성에 특화된 코드 헬퍼 챗봇이야. "
-                "사용자가 제공하는 코드나 코드 관련 요청에 대해 명확하고 효율적인 답변을 제공해줘. "
-                "가능하면 구체적인 코드 예제와 수정 방법을 함께 제시해줘."
-            )
-        })
-
-    # 기존 대화 내역 표시
+    # 이전 대화 보여주기
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    # 사용자 입력 처리 (대화 입력 필드)
-    if prompt := st.chat_input("질문이나 요청을 입력하세요:"):
-        # 사용자 메시지 저장 및 표시
+    # 사용자 입력 받기
+    if prompt := st.chat_input("파이썬에 대해 궁금한 걸 적어보세요!"):
+        # 사용자 메시지 저장 및 출력
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
 
-        # 대화 내역을 하나의 프롬프트 문자열로 합치기
-        prompt_text = ""
-        for m in st.session_state.messages:
-            if m["role"] == "system":
-                prompt_text += "System: " + m["content"] + "\n"
-            elif m["role"] == "user":
-                prompt_text += "User: " + m["content"] + "\n"
-            elif m["role"] == "assistant":
-                prompt_text += "Assistant: " + m["content"] + "\n"
-        prompt_text += "Assistant: "
+        # GPT 응답 생성
+        stream = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "너는 초등학생에게 파이썬을 쉽게 알려주는 친절한 선생님이야. 어려운 단어는 쓰지 말고, 예시도 들어줘."},
+                *st.session_state.messages
+            ],
+            stream=True,
+        )
 
-        # completions 엔드포인트를 사용하여 응답 생성
-        with st.spinner("답변 생성 중..."):
-            response = client.completions.create(
-                model="gpt-3.5-turbo",
-                prompt=prompt_text,
-                max_tokens=200,
-                temperature=0.7,
-                n=1,
-                stop=None,
-            )
-
-        # 응답에서 생성된 텍스트 추출
-        full_response = response["choices"][0]["text"].strip()
-        st.session_state.messages.append({"role": "assistant", "content": full_response})
+        # 응답 출력 및 저장
         with st.chat_message("assistant"):
-            st.markdown(full_response)
-
-    # 푸터 추가
-    st.markdown('<div class="footer">Developed with ❤️ by Konuri</div>', unsafe_allow_html=True)
+            response = st.write_stream(stream)
+        st.session_state.messages.append({"role": "assistant", "content": response})
