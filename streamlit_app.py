@@ -39,7 +39,7 @@ else:
 
         # GPT 응답 생성
         stream = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "너는 초등학생에게 파이썬을 쉽게 알려주는 친절한 선생님이야. 어려운 단어는 쓰지 말고, 예시도 들어줘."},
                 *st.session_state.messages
