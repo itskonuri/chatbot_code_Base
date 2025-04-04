@@ -39,7 +39,7 @@ if not openai_api_key:
     st.sidebar.info("API 키를 입력하면 앱을 사용할 수 있습니다. 🗝️")
 else:
     # 여기서 openai.api_key가 아닌, OpenAI.api_key로 설정
-    OpenAI.api_key = openai_api_key
+    openai.api_key = openai_api_key
 
     # 세션 상태에 대화 기록 초기화
     if "messages" not in st.session_state:
@@ -70,7 +70,7 @@ else:
         # 응답 생성 전에 스피너 표시
         with st.spinner("답변 생성 중..."):
             # openai.ChatCompletion.create -> OpenAI.ChatCompletion.create
-            response_stream = OpenAI.Completions.create(
+            response_stream = openai.Completions.create(
                 model="gpt-3.5-turbo",
                 messages=st.session_state.messages,
                 stream=True,
