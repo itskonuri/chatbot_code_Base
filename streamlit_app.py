@@ -1,5 +1,5 @@
 import streamlit as st
-import openai
+from openai import OpenAI
 
 # 맞춤형 CSS로 스타일 추가 (배너, 푸터 스타일)
 st.markdown(
