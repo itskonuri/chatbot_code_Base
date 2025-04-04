@@ -82,7 +82,7 @@ else:
         # completions 엔드포인트를 사용하여 응답 생성
         with st.spinner("답변 생성 중..."):
             response = client.completions.create(
-                model="text-davinci-003",
+                model="gpt-3.5-turbo",
                 prompt=prompt_text,
                 max_tokens=200,
                 temperature=0.7,
